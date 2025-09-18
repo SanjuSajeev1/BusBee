@@ -8,15 +8,20 @@ import {
   TextInput,
   Platform,
   Dimensions,
+  Alert,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { StatusBar } from "expo-status-bar";
+import { router } from "expo-router";
+import LocationPickerModal from "../../src/components/modals/LocationPickerModal";
 
 const { width } = Dimensions.get("window");
 
 export default function HomeScreen() {
   const [fromLocation, setFromLocation] = useState("");
   const [toLocation, setToLocation] = useState("");
+  const [showFromPicker, setShowFromPicker] = useState(false);
+  const [showToPicker, setShowToPicker] = useState(false);
 
   const quickActions = [
     { id: 1, title: "Book Now", icon: "🚌", color: ["#1A73E8", "#4285F4"] },
@@ -36,6 +41,41 @@ export default function HomeScreen() {
       price: "$10",
     },
   ];
+
+  const handleFromLocationSelect = (location: any) => {
+    setFromLocation(location.name);
+  };
+
+  const handleToLocationSelect = (location: any) => {
+    setToLocation(location.name);
+  };
+
+  const handleFindBuses = () => {
+    if (!fromLocation || !toLocation) {
+      Alert.alert("Missing Information", "Please select both departure and destination locations");
+      return;
+    }
+
+    if (fromLocation === toLocation) {
+      Alert.alert("Invalid Route", "Departure and destination cannot be the same");
+      return;
+    }
+
+    // Navigate to bus results screen
+    router.push({
+      pathname: "/(search)/results",
+      params: {
+        from: fromLocation,
+        to: toLocation,
+      },
+    });
+  };
+
+  const handleSwapLocations = () => {
+    const temp = fromLocation;
+    setFromLocation(toLocation);
+    setToLocation(temp);
+  };
 
   return (
     <View style={styles.container}>
@@ -65,38 +105,41 @@ export default function HomeScreen() {
             <View style={styles.searchInputs}>
               <View style={styles.inputContainer}>
                 <Text style={styles.inputLabel}>From</Text>
-                <TextInput
+                <TouchableOpacity
                   style={styles.searchInput}
-                  placeholder="Current location"
-                  placeholderTextColor="#A0A0A0"
-                  value={fromLocation}
-                  onChangeText={setFromLocation}
-                />
+                  onPress={() => setShowFromPicker(true)}
+                >
+                  <Text style={[
+                    styles.searchInputText,
+                    !fromLocation && styles.placeholderText
+                  ]}>
+                    {fromLocation || "Select departure location"}
+                  </Text>
+                </TouchableOpacity>
               </View>
 
-              <TouchableOpacity style={styles.swapButton}>
+              <TouchableOpacity style={styles.swapButton} onPress={handleSwapLocations}>
                 <Text style={styles.swapIcon}>⇅</Text>
               </TouchableOpacity>
 
               <View style={styles.inputContainer}>
                 <Text style={styles.inputLabel}>To</Text>
-                <TextInput
+                <TouchableOpacity
                   style={styles.searchInput}
-                  placeholder="Where to?"
-                  placeholderTextColor="#A0A0A0"
-                  value={toLocation}
-                  onChangeText={setToLocation}
-                />
+                  onPress={() => setShowToPicker(true)}
+                >
+                  <Text style={[
+                    styles.searchInputText,
+                    !toLocation && styles.placeholderText
+                  ]}>
+                    {toLocation || "Select destination"}
+                  </Text>
+                </TouchableOpacity>
               </View>
             </View>
 
-            <TouchableOpacity style={styles.searchButton}>
-              <LinearGradient
-                colors={["#1A73E8", "#4285F4"]}
-                style={styles.searchButtonGradient}
-              >
-                <Text style={styles.searchButtonText}>Find Buses</Text>
-              </LinearGradient>
+            <TouchableOpacity style={styles.searchButton} onPress={handleFindBuses}>
+              <Text style={styles.searchButtonText}>Find Buses</Text>
             </TouchableOpacity>
           </View>
         </LinearGradient>
@@ -172,6 +215,21 @@ export default function HomeScreen() {
           </View>
         </View>
       </ScrollView>
+
+      {/* Location Picker Modals */}
+      <LocationPickerModal
+        visible={showFromPicker}
+        title="Select departure location"
+        onClose={() => setShowFromPicker(false)}
+        onSelectLocation={handleFromLocationSelect}
+      />
+
+      <LocationPickerModal
+        visible={showToPicker}
+        title="Select destination"
+        onClose={() => setShowToPicker(false)}
+        onSelectLocation={handleToLocationSelect}
+      />
     </View>
   );
 }
@@ -268,18 +326,32 @@ const styles = StyleSheet.create({
     color: "#FFFFFF",
     fontWeight: "bold",
   },
-  searchButton: {
+  searchInput: {
+    backgroundColor: "#F5F5F5",
     borderRadius: 12,
-    overflow: "hidden",
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    borderWidth: 1,
+    borderColor: "#E5E5EA",
+    justifyContent: "center",
   },
-  searchButtonGradient: {
+  searchInputText: {
+    fontSize: 16,
+    color: "#333333",
+  },
+  placeholderText: {
+    color: "#A0A0A0",
+  },
+  searchButton: {
+    backgroundColor: "#111827",
+    borderRadius: 12,
     paddingVertical: 16,
     alignItems: "center",
     justifyContent: "center",
   },
   searchButtonText: {
-    fontSize: 18,
-    fontWeight: "bold",
+    fontSize: 16,
+    fontWeight: "600",
     color: "#FFFFFF",
   },
   section: {

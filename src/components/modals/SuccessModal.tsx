@@ -10,7 +10,7 @@ import {
   Platform,
 } from "react-native";
 
-const { width, height } = Dimensions.get("window");
+const { width } = Dimensions.get("window");
 
 interface SuccessModalProps {
   visible: boolean;

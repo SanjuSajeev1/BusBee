@@ -40,23 +40,35 @@ export default function OTPVerifyScreen() {
   }
 
   useEffect(() => {
-    let timer: NodeJS.Timeout;
+    let timer: NodeJS.Timeout | null = null;
 
-    // Start the countdown timer
-    timer = setInterval(() => {
-      setResendTimer((prev) => {
-        if (prev <= 1) {
-          setCanResend(true);
-          return 0;
-        }
-        return prev - 1;
-      });
-    }, 1000);
+    if (resendTimer > 0 && !canResend) {
+      timer = setInterval(() => {
+        setResendTimer((prev) => {
+          if (prev <= 1) {
+            setCanResend(true);
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+    }
 
     return () => {
-      clearInterval(timer);
+      if (timer) {
+        clearInterval(timer);
+        timer = null;
+      }
     };
-  }, []); // Empty dependency array - only run once on mount
+  }, [resendTimer, canResend]);
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      // Clear any pending timers on component unmount
+      setLoading(false);
+    };
+  }, []);
 
   const handleOtpChange = (text: string, index: number) => {
     // Only allow numeric input
@@ -119,7 +131,7 @@ export default function OTPVerifyScreen() {
       // Simulate resending OTP
       await new Promise((resolve) => setTimeout(resolve, 1000));
 
-      // Simply reset the timer state
+      // Reset timer state - useEffect will handle the timer
       setResendTimer(30);
       setCanResend(false);
       Alert.alert("OTP Sent", "A new OTP has been sent to your phone number");

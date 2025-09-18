@@ -6,6 +6,7 @@ import {
   Modal,
   TouchableOpacity,
   ScrollView,
+  TextInput,
   Platform,
   Dimensions,
 } from "react-native";
@@ -16,6 +17,7 @@ interface Stop {
   id: string;
   name: string;
   time: string;
+  status?: "completed" | "current" | "upcoming";
 }
 
 interface RouteSelectionModalProps {
@@ -33,6 +35,8 @@ export default function RouteSelectionModal({
 }: RouteSelectionModalProps) {
   const [selectedFrom, setSelectedFrom] = useState<Stop | null>(null);
   const [selectedTo, setSelectedTo] = useState<Stop | null>(null);
+  const [fromSearchQuery, setFromSearchQuery] = useState("");
+  const [toSearchQuery, setToSearchQuery] = useState("");
 
   const handleConfirm = () => {
     if (selectedFrom && selectedTo) {
@@ -46,10 +50,31 @@ export default function RouteSelectionModal({
   const handleClose = () => {
     setSelectedFrom(null);
     setSelectedTo(null);
+    setFromSearchQuery("");
+    setToSearchQuery("");
     onClose();
   };
 
-  const isValidSelection = selectedFrom && selectedTo && selectedFrom.id !== selectedTo.id;
+  const filteredFromStops = stops.filter((stop) =>
+    stop.name.toLowerCase().includes(fromSearchQuery.toLowerCase())
+  );
+
+  const filteredToStops = stops.filter((stop) =>
+    stop.name.toLowerCase().includes(toSearchQuery.toLowerCase())
+  );
+
+  const isStopSelectable = (stop: Stop, isFromSelection: boolean) => {
+    // Can't select completed stops for boarding
+    if (isFromSelection && stop.status === "completed") {
+      return false;
+    }
+    // Can select current stop for boarding
+    // Can select current and upcoming stops for destination
+    return true;
+  };
+
+  const isValidSelection =
+    selectedFrom && selectedTo && selectedFrom.id !== selectedTo.id;
 
   return (
     <Modal visible={visible} transparent animationType="slide">
@@ -64,35 +89,51 @@ export default function RouteSelectionModal({
           </View>
 
           <View style={styles.content}>
-            <Text style={styles.instruction}>
-              Choose your boarding and destination stops
-            </Text>
-
             {/* From Selection */}
             <View style={styles.section}>
               <Text style={styles.sectionTitle}>From</Text>
-              <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-                {stops.map((stop) => (
+              <TextInput
+                style={styles.searchInput}
+                placeholder="Search boarding stop..."
+                placeholderTextColor="#9CA3AF"
+                value={fromSearchQuery}
+                onChangeText={setFromSearchQuery}
+              />
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                style={styles.stopsScroll}
+              >
+                {filteredFromStops.map((stop) => (
                   <TouchableOpacity
                     key={`from-${stop.id}`}
                     style={[
                       styles.stopChip,
                       selectedFrom?.id === stop.id && styles.selectedChip,
+                      !isStopSelectable(stop, true) && styles.disabledChip,
                     ]}
-                    onPress={() => setSelectedFrom(stop)}
+                    onPress={() =>
+                      isStopSelectable(stop, true) && setSelectedFrom(stop)
+                    }
+                    disabled={!isStopSelectable(stop, true)}
                   >
                     <Text
                       style={[
                         styles.stopChipText,
                         selectedFrom?.id === stop.id && styles.selectedChipText,
+                        !isStopSelectable(stop, true) &&
+                          styles.disabledChipText,
                       ]}
                     >
                       {stop.name}
+                      {stop.status === "completed" && " (Passed)"}
                     </Text>
                     <Text
                       style={[
                         styles.stopChipTime,
                         selectedFrom?.id === stop.id && styles.selectedChipTime,
+                        !isStopSelectable(stop, true) &&
+                          styles.disabledChipText,
                       ]}
                     >
                       {stop.time}
@@ -105,8 +146,19 @@ export default function RouteSelectionModal({
             {/* To Selection */}
             <View style={styles.section}>
               <Text style={styles.sectionTitle}>To</Text>
-              <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-                {stops.map((stop) => (
+              <TextInput
+                style={styles.searchInput}
+                placeholder="Search destination stop..."
+                placeholderTextColor="#9CA3AF"
+                value={toSearchQuery}
+                onChangeText={setToSearchQuery}
+              />
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                style={styles.stopsScroll}
+              >
+                {filteredToStops.map((stop) => (
                   <TouchableOpacity
                     key={`to-${stop.id}`}
                     style={[
@@ -186,16 +238,16 @@ const styles = StyleSheet.create({
     backgroundColor: "#FFFFFF",
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
-    maxHeight: "80%",
-    paddingBottom: Platform.OS === "ios" ? 40 : 20,
+    maxHeight: "85%",
+    paddingBottom: Platform.OS === "ios" ? 30 : 15,
   },
   header: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
     paddingHorizontal: 20,
-    paddingTop: 20,
-    paddingBottom: 16,
+    paddingTop: 16,
+    paddingBottom: 12,
     borderBottomWidth: 1,
     borderBottomColor: "#F3F4F6",
   },
@@ -214,16 +266,10 @@ const styles = StyleSheet.create({
   },
   content: {
     paddingHorizontal: 20,
-    paddingVertical: 20,
-  },
-  instruction: {
-    fontSize: 14,
-    color: "#6B7280",
-    textAlign: "center",
-    marginBottom: 24,
+    paddingVertical: 16,
   },
   section: {
-    marginBottom: 24,
+    marginBottom: 20,
   },
   sectionTitle: {
     fontSize: 16,
@@ -231,15 +277,29 @@ const styles = StyleSheet.create({
     color: "#111827",
     marginBottom: 12,
   },
+  searchInput: {
+    backgroundColor: "#F9FAFB",
+    borderWidth: 1,
+    borderColor: "#E5E7EB",
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    fontSize: 14,
+    color: "#111827",
+    marginBottom: 12,
+  },
+  stopsScroll: {
+    marginTop: 4,
+  },
   stopChip: {
     backgroundColor: "#F9FAFB",
     borderWidth: 1,
     borderColor: "#E5E7EB",
-    borderRadius: 12,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    marginRight: 12,
-    minWidth: 120,
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    marginRight: 10,
+    minWidth: 100,
   },
   selectedChip: {
     backgroundColor: "#111827",
@@ -271,11 +331,12 @@ const styles = StyleSheet.create({
   },
   routeSummary: {
     backgroundColor: "#F0FDF4",
-    borderRadius: 12,
-    padding: 16,
+    borderRadius: 10,
+    padding: 12,
     alignItems: "center",
     borderWidth: 1,
     borderColor: "#BBF7D0",
+    marginTop: 8,
   },
   routeText: {
     fontSize: 16,
@@ -290,7 +351,8 @@ const styles = StyleSheet.create({
   confirmButton: {
     backgroundColor: "#111827",
     marginHorizontal: 20,
-    paddingVertical: 16,
+    marginTop: 16,
+    paddingVertical: 14,
     borderRadius: 12,
     alignItems: "center",
   },

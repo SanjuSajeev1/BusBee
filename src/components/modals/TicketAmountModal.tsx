@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   View,
   Text,
@@ -15,19 +15,37 @@ interface TicketAmountModalProps {
   visible: boolean;
   fromStop: string;
   toStop: string;
-  amount: number;
+  baseAmount: number;
   onClose: () => void;
-  onProceedToPayment: () => void;
+  onProceedToPayment: (passengers: number, totalAmount: number) => void;
 }
 
 export default function TicketAmountModal({
   visible,
   fromStop,
   toStop,
-  amount,
+  baseAmount,
   onClose,
   onProceedToPayment,
 }: TicketAmountModalProps) {
+  const [passengers, setPassengers] = useState(1);
+  const totalAmount = baseAmount * passengers;
+
+  const increasePassengers = () => {
+    if (passengers < 6) {
+      setPassengers(passengers + 1);
+    }
+  };
+
+  const decreasePassengers = () => {
+    if (passengers > 1) {
+      setPassengers(passengers - 1);
+    }
+  };
+
+  const handleProceed = () => {
+    onProceedToPayment(passengers, totalAmount);
+  };
   return (
     <Modal visible={visible} transparent animationType="fade">
       <View style={styles.overlay}>
@@ -48,19 +66,68 @@ export default function TicketAmountModal({
               </Text>
             </View>
 
+            {/* Passenger Selection */}
+            <View style={styles.passengerSection}>
+              <Text style={styles.sectionTitle}>Number of Passengers</Text>
+              <View style={styles.passengerControl}>
+                <TouchableOpacity
+                  style={[
+                    styles.passengerButton,
+                    passengers <= 1 && styles.disabledButton,
+                  ]}
+                  onPress={decreasePassengers}
+                  disabled={passengers <= 1}
+                >
+                  <Text
+                    style={[
+                      styles.passengerButtonText,
+                      passengers <= 1 && styles.disabledButtonText,
+                    ]}
+                  >
+                    −
+                  </Text>
+                </TouchableOpacity>
+                <View style={styles.passengerDisplay}>
+                  <Text style={styles.passengerCount}>{passengers}</Text>
+                  <Text style={styles.passengerLabel}>
+                    {passengers === 1 ? "Passenger" : "Passengers"}
+                  </Text>
+                </View>
+                <TouchableOpacity
+                  style={[
+                    styles.passengerButton,
+                    passengers >= 6 && styles.disabledButton,
+                  ]}
+                  onPress={increasePassengers}
+                  disabled={passengers >= 6}
+                >
+                  <Text
+                    style={[
+                      styles.passengerButtonText,
+                      passengers >= 6 && styles.disabledButtonText,
+                    ]}
+                  >
+                    +
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+
             <View style={styles.amountContainer}>
-              <Text style={styles.amountLabel}>Ticket Amount</Text>
-              <Text style={styles.amount}>${amount}</Text>
+              <Text style={styles.amountLabel}>Total Amount</Text>
+              <View style={styles.amountBreakdown}>
+                <Text style={styles.breakdown}>
+                  ${baseAmount} × {passengers} passenger
+                  {passengers > 1 ? "s" : ""}
+                </Text>
+                <Text style={styles.amount}>${totalAmount}</Text>
+              </View>
             </View>
 
             <View style={styles.detailsContainer}>
               <View style={styles.detailRow}>
                 <Text style={styles.detailLabel}>Date</Text>
                 <Text style={styles.detailValue}>Today</Text>
-              </View>
-              <View style={styles.detailRow}>
-                <Text style={styles.detailLabel}>Passenger</Text>
-                <Text style={styles.detailValue}>1 Adult</Text>
               </View>
               <View style={styles.detailRow}>
                 <Text style={styles.detailLabel}>Bus Type</Text>
@@ -71,7 +138,7 @@ export default function TicketAmountModal({
 
           <TouchableOpacity
             style={styles.proceedButton}
-            onPress={onProceedToPayment}
+            onPress={handleProceed}
           >
             <Text style={styles.proceedButtonText}>Proceed to Payment</Text>
           </TouchableOpacity>
@@ -146,6 +213,57 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     color: "#111827",
   },
+  passengerSection: {
+    marginBottom: 24,
+  },
+  sectionTitle: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#111827",
+    marginBottom: 16,
+    textAlign: "center",
+  },
+  passengerControl: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 20,
+  },
+  passengerButton: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: "#111827",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  disabledButton: {
+    backgroundColor: "#E5E7EB",
+  },
+  passengerButtonText: {
+    fontSize: 20,
+    fontWeight: "600",
+    color: "#FFFFFF",
+  },
+  disabledButtonText: {
+    color: "#9CA3AF",
+  },
+  passengerDisplay: {
+    alignItems: "center",
+    minWidth: 80,
+  },
+  passengerCount: {
+    fontSize: 32,
+    fontWeight: "700",
+    color: "#111827",
+    marginBottom: 4,
+  },
+  passengerLabel: {
+    fontSize: 12,
+    color: "#6B7280",
+    textTransform: "uppercase",
+    letterSpacing: 0.5,
+  },
   amountContainer: {
     alignItems: "center",
     marginBottom: 32,
@@ -154,6 +272,14 @@ const styles = StyleSheet.create({
     borderRadius: 12,
   },
   amountLabel: {
+    fontSize: 14,
+    color: "#6B7280",
+    marginBottom: 8,
+  },
+  amountBreakdown: {
+    alignItems: "center",
+  },
+  breakdown: {
     fontSize: 14,
     color: "#6B7280",
     marginBottom: 8,

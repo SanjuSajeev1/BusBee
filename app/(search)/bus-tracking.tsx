@@ -113,7 +113,13 @@ export default function BusTrackingScreen() {
   const [showRouteSelection, setShowRouteSelection] = useState(false);
   const [showTicketAmount, setShowTicketAmount] = useState(false);
   const [showUPIPayment, setShowUPIPayment] = useState(false);
-  const [selectedRoute, setSelectedRoute] = useState<{from: any, to: any, amount: number} | null>(null);
+  const [selectedRoute, setSelectedRoute] = useState<{
+    from: any;
+    to: any;
+    amount: number;
+    passengers?: number;
+    totalAmount?: number;
+  } | null>(null);
   const pulseAnim = new Animated.Value(1);
 
   useEffect(() => {
@@ -144,13 +150,20 @@ export default function BusTrackingScreen() {
   const handleRouteSelection = (fromStop: any, toStop: any) => {
     const distance = Math.abs(parseInt(fromStop.id) - parseInt(toStop.id));
     const basePrice = 3;
-    const amount = basePrice + (distance * 1.5); // Calculate based on distance
-    
-    setSelectedRoute({ from: fromStop, to: toStop, amount: Math.round(amount) });
+    const amount = basePrice + distance * 1.5; // Calculate based on distance
+
+    setSelectedRoute({
+      from: fromStop,
+      to: toStop,
+      amount: Math.round(amount),
+    });
     setShowTicketAmount(true);
   };
 
-  const handleProceedToPayment = () => {
+  const handleProceedToPayment = (passengers: number, totalAmount: number) => {
+    setSelectedRoute((prev) =>
+      prev ? { ...prev, passengers, totalAmount } : null
+    );
     setShowTicketAmount(false);
     setShowUPIPayment(true);
   };
@@ -303,10 +316,11 @@ export default function BusTrackingScreen() {
       {/* Modals */}
       <RouteSelectionModal
         visible={showRouteSelection}
-        stops={busStops.map(stop => ({
+        stops={busStops.map((stop) => ({
           id: stop.id,
           name: stop.name,
           time: stop.estimatedTime,
+          status: stop.status,
         }))}
         onClose={() => setShowRouteSelection(false)}
         onConfirm={handleRouteSelection}
@@ -316,14 +330,14 @@ export default function BusTrackingScreen() {
         visible={showTicketAmount}
         fromStop={selectedRoute?.from?.name || ""}
         toStop={selectedRoute?.to?.name || ""}
-        amount={selectedRoute?.amount || 0}
+        baseAmount={selectedRoute?.amount || 0}
         onClose={() => setShowTicketAmount(false)}
         onProceedToPayment={handleProceedToPayment}
       />
 
       <UPIPaymentModal
         visible={showUPIPayment}
-        amount={selectedRoute?.amount || 0}
+        amount={selectedRoute?.totalAmount || selectedRoute?.amount || 0}
         onClose={() => setShowUPIPayment(false)}
         onPaymentSuccess={handlePaymentSuccess}
       />
@@ -403,7 +417,7 @@ const styles = StyleSheet.create({
     paddingTop: 20,
   },
   stopsContent: {
-    paddingBottom: 100, // Add bottom padding to prevent overlap
+    paddingBottom: 120, // Increased padding to prevent overlap with payment section
   },
   stopsTitle: {
     fontSize: 18,
@@ -456,11 +470,27 @@ const styles = StyleSheet.create({
     fontWeight: "500",
   },
   bookingSection: {
+    position: "absolute",
+    bottom: 0,
+    left: 0,
+    right: 0,
     backgroundColor: "#FFFFFF",
     paddingHorizontal: 20,
-    paddingVertical: 16,
+    paddingVertical: 20,
     borderTopWidth: 1,
     borderTopColor: "#F3F4F6",
+    paddingBottom: Platform.OS === "ios" ? 40 : 20,
+    ...Platform.select({
+      ios: {
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: -2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 8,
+      },
+      android: {
+        elevation: 8,
+      },
+    }),
   },
   payButton: {
     backgroundColor: "#111827",
@@ -474,16 +504,30 @@ const styles = StyleSheet.create({
     color: "#FFFFFF",
   },
   bookedSection: {
+    position: "absolute",
+    bottom: 0,
+    left: 0,
+    right: 0,
     backgroundColor: "#F0FDF4",
     paddingHorizontal: 20,
     paddingVertical: 20,
     borderTopWidth: 1,
     borderTopColor: "#BBF7D0",
-    borderBottomWidth: 1,
-    borderBottomColor: "#BBF7D0",
+    paddingBottom: Platform.OS === "ios" ? 40 : 20,
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
+    ...Platform.select({
+      ios: {
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: -2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 8,
+      },
+      android: {
+        elevation: 8,
+      },
+    }),
   },
   bookedInfo: {
     flexDirection: "row",

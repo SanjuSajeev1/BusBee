@@ -38,7 +38,10 @@ export default function UPIPaymentModal({
 
   const handlePayment = async () => {
     if (!selectedUPI) {
-      Alert.alert("Select Payment Method", "Please choose a UPI app to proceed");
+      Alert.alert(
+        "Select Payment Method",
+        "Please choose a UPI app to proceed"
+      );
       return;
     }
 
@@ -46,7 +49,7 @@ export default function UPIPaymentModal({
     try {
       // Simulate payment processing
       await new Promise((resolve) => setTimeout(resolve, 2000));
-      
+
       onPaymentSuccess();
       setSelectedUPI(null);
       onClose();
@@ -82,7 +85,7 @@ export default function UPIPaymentModal({
             </View>
 
             <Text style={styles.sectionTitle}>Choose Payment Method</Text>
-            
+
             <View style={styles.upiOptions}>
               {upiOptions.map((option) => (
                 <TouchableOpacity

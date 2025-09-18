@@ -5,6 +5,7 @@ import { View, ActivityIndicator } from "react-native";
 import SplashScreen from "../src/components/SplashScreen";
 import OnboardingCarousel from "../src/components/onboarding/OnboardingCarousel";
 import { AuthProvider, useAuth } from "../src/context/AuthContext";
+import { BookingProvider } from "../src/context/BookingContext";
 
 function AppContent() {
   const [showSplash, setShowSplash] = useState(true);

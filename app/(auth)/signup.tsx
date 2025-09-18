@@ -14,6 +14,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { useAuth } from "../../src/context/AuthContext";
+import SuccessModal from "../../src/components/modals/SuccessModal";
 
 export default function SignupScreen() {
   const [formData, setFormData] = useState({

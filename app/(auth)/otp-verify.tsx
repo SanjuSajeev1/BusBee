@@ -13,6 +13,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import { router, useLocalSearchParams } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { useAuth } from "../../src/context/AuthContext";
+import SuccessModal from "../../src/components/modals/SuccessModal";
 
 export default function OTPVerifyScreen() {
   const { phoneNumber } = useLocalSearchParams<{ phoneNumber: string }>();
@@ -21,6 +22,7 @@ export default function OTPVerifyScreen() {
   const [loading, setLoading] = useState(false);
   const [resendTimer, setResendTimer] = useState(30);
   const [canResend, setCanResend] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
   const inputRefs = useRef<TextInput[]>([]);
 
   // Prevent component from refreshing if phoneNumber is undefined
@@ -38,35 +40,23 @@ export default function OTPVerifyScreen() {
   }
 
   useEffect(() => {
-    let timer: NodeJS.Timeout | null = null;
+    let timer: NodeJS.Timeout;
 
-    if (resendTimer > 0 && !canResend) {
-      timer = setInterval(() => {
-        setResendTimer((prev) => {
-          if (prev <= 1) {
-            setCanResend(true);
-            return 0;
-          }
-          return prev - 1;
-        });
-      }, 1000);
-    }
+    // Start the countdown timer
+    timer = setInterval(() => {
+      setResendTimer((prev) => {
+        if (prev <= 1) {
+          setCanResend(true);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
 
     return () => {
-      if (timer) {
-        clearInterval(timer);
-        timer = null;
-      }
+      clearInterval(timer);
     };
-  }, [resendTimer, canResend]);
-
-  // Cleanup on unmount
-  useEffect(() => {
-    return () => {
-      // Clear any pending timers on component unmount
-      setLoading(false);
-    };
-  }, []);
+  }, []); // Empty dependency array - only run once on mount
 
   const handleOtpChange = (text: string, index: number) => {
     // Only allow numeric input
@@ -113,12 +103,8 @@ export default function OTPVerifyScreen() {
 
       await login(userData);
 
-      Alert.alert("Success!", "Phone number verified successfully!", [
-        {
-          text: "Continue",
-          onPress: () => router.replace("/(tabs)"),
-        },
-      ]);
+      // Show success modal
+      setShowSuccessModal(true);
     } catch (error) {
       Alert.alert("Error", "Invalid OTP. Please try again.");
     } finally {
@@ -133,13 +119,18 @@ export default function OTPVerifyScreen() {
       // Simulate resending OTP
       await new Promise((resolve) => setTimeout(resolve, 1000));
 
-      // Reset timer state - useEffect will handle the timer
+      // Simply reset the timer state
       setResendTimer(30);
       setCanResend(false);
       Alert.alert("OTP Sent", "A new OTP has been sent to your phone number");
     } catch (error) {
       Alert.alert("Error", "Failed to resend OTP. Please try again.");
     }
+  };
+
+  const handleSuccessModalClose = () => {
+    setShowSuccessModal(false);
+    router.replace("/(tabs)");
   };
 
   return (
@@ -214,6 +205,16 @@ export default function OTPVerifyScreen() {
           </View>
         </View>
       </KeyboardAvoidingView>
+
+      {/* Success Modal */}
+      <SuccessModal
+        visible={showSuccessModal}
+        title="Welcome to BusBee!"
+        message="Your phone number has been verified successfully. Get ready for premium bus travel experience."
+        buttonText="Let's Go"
+        onClose={handleSuccessModalClose}
+        autoClose={false}
+      />
     </View>
   );
 }

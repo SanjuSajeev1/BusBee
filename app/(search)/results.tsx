@@ -110,18 +110,70 @@ const dummyBusData: BusRoute[] = [
     ],
     rating: 4.9,
   },
+  {
+    id: "7",
+    operator: "Morning Express",
+    departureTime: "7:30 AM",
+    arrivalTime: "8:15 AM",
+    duration: "45 min",
+    price: 10,
+    type: "Private",
+    seatsAvailable: 10,
+    amenities: ["WiFi", "AC", "USB Charging"],
+    rating: 4.7,
+  },
+  {
+    id: "8",
+    operator: "Evening Shuttle",
+    departureTime: "6:00 PM",
+    arrivalTime: "6:45 PM",
+    duration: "45 min",
+    price: 12,
+    type: "Limited Stop",
+    seatsAvailable: 8,
+    amenities: ["AC", "USB Charging"],
+    rating: 4.4,
+  },
+  {
+    id: "9",
+    operator: "Night Rider",
+    departureTime: "8:30 PM",
+    arrivalTime: "9:20 PM",
+    duration: "50 min",
+    price: 14,
+    type: "Private",
+    seatsAvailable: 5,
+    amenities: ["WiFi", "AC", "USB Charging"],
+    rating: 4.6,
+  },
 ];
 
 export default function BusResultsScreen() {
   const { from, to } = useLocalSearchParams<{ from: string; to: string }>();
   const [selectedFilter, setSelectedFilter] = useState("All");
+  const [selectedTimeFilter, setSelectedTimeFilter] = useState("All Times");
 
   const filters = ["All", "Private", "Limited Stop"];
+  const timeFilters = ["All Times", "Morning", "Afternoon", "Evening"];
 
-  const filteredBuses =
-    selectedFilter === "All"
-      ? dummyBusData
-      : dummyBusData.filter((bus) => bus.type === selectedFilter);
+  const getTimeCategory = (time: string) => {
+    const hour = parseInt(time.split(":")[0]);
+    const isPM = time.includes("PM");
+    const hour24 = isPM && hour !== 12 ? hour + 12 : hour;
+
+    if (hour24 >= 6 && hour24 < 12) return "Morning";
+    if (hour24 >= 12 && hour24 < 17) return "Afternoon";
+    if (hour24 >= 17 && hour24 < 24) return "Evening";
+    return "Morning"; // Default
+  };
+
+  const filteredBuses = dummyBusData
+    .filter((bus) => selectedFilter === "All" || bus.type === selectedFilter)
+    .filter(
+      (bus) =>
+        selectedTimeFilter === "All Times" ||
+        getTimeCategory(bus.departureTime) === selectedTimeFilter
+    );
 
   const getTypeColor = (type: string) => {
     switch (type) {
@@ -172,8 +224,9 @@ export default function BusResultsScreen() {
         <View style={styles.placeholder} />
       </View>
 
-      {/* Filters */}
+      {/* Type Filters */}
       <View style={styles.filtersContainer}>
+        <Text style={styles.filterLabel}>Bus Type</Text>
         <ScrollView horizontal showsHorizontalScrollIndicator={false}>
           {filters.map((filter) => (
             <TouchableOpacity
@@ -190,7 +243,33 @@ export default function BusResultsScreen() {
                   selectedFilter === filter && styles.filterTextActive,
                 ]}
               >
-                {filter === "all" ? "All" : filter}
+                {filter}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
+      </View>
+
+      {/* Time Filters */}
+      <View style={styles.filtersContainer}>
+        <Text style={styles.filterLabel}>Departure Time</Text>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+          {timeFilters.map((timeFilter) => (
+            <TouchableOpacity
+              key={timeFilter}
+              style={[
+                styles.filterChip,
+                selectedTimeFilter === timeFilter && styles.filterChipActive,
+              ]}
+              onPress={() => setSelectedTimeFilter(timeFilter)}
+            >
+              <Text
+                style={[
+                  styles.filterText,
+                  selectedTimeFilter === timeFilter && styles.filterTextActive,
+                ]}
+              >
+                {timeFilter}
               </Text>
             </TouchableOpacity>
           ))}
@@ -203,7 +282,20 @@ export default function BusResultsScreen() {
         showsVerticalScrollIndicator={false}
       >
         {filteredBuses.map((bus) => (
-          <View key={bus.id} style={styles.busCard}>
+          <TouchableOpacity 
+            key={bus.id} 
+            style={styles.busCard}
+            onPress={() => router.push({
+              pathname: "/(search)/bus-tracking",
+              params: {
+                busId: bus.id,
+                operator: bus.operator,
+                from,
+                to,
+              },
+            })}
+            activeOpacity={0.7}
+          >
             {/* Bus Header */}
             <View style={styles.busHeader}>
               <View style={styles.operatorInfo}>
@@ -246,7 +338,7 @@ export default function BusResultsScreen() {
             {/* <View style={styles.priceSection}>
               <Text style={styles.price}>${bus.price}</Text>
             </View> */}
-          </View>
+          </TouchableOpacity>
         ))}
       </ScrollView>
     </View>
@@ -300,10 +392,16 @@ const styles = StyleSheet.create({
   },
   filtersContainer: {
     paddingHorizontal: 20,
-    paddingVertical: 16,
+    paddingVertical: 12,
     backgroundColor: "#FFFFFF",
     borderBottomWidth: 1,
     borderBottomColor: "#F3F4F6",
+  },
+  filterLabel: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#374151",
+    marginBottom: 8,
   },
   filterChip: {
     paddingHorizontal: 16,

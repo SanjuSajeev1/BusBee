@@ -27,18 +27,30 @@ export default function HomeScreen() {
     { id: 1, title: "Book Now", icon: "🚌", color: ["#1A73E8", "#4285F4"] },
     { id: 2, title: "Track Bus", icon: "📍", color: ["#34A853", "#0F9D58"] },
     { id: 3, title: "My Tickets", icon: "🎫", color: ["#FBBC04", "#F9AB00"] },
-    { id: 4, title: "Support", icon: "💬", color: ["#EA4335", "#D33B2C"] },
+    { id: 4, title: "Request Song", icon: "🎵", color: ["#9C27B0", "#E91E63"] },
   ];
 
   const recentRoutes = [
-    { id: 1, from: "Downtown", to: "Airport", time: "45 min", price: "$12" },
-    { id: 2, from: "Mall", to: "University", time: "25 min", price: "$8" },
+    {
+      id: 1,
+      from: "Metro Station",
+      to: "Airport Terminal",
+      time: "45 min",
+      price: "₹16",
+    },
+    {
+      id: 2,
+      from: "City Mall",
+      to: "University Campus",
+      time: "25 min",
+      price: "₹12",
+    },
     {
       id: 3,
-      from: "Station",
+      from: "Railway Station",
       to: "Business District",
       time: "35 min",
-      price: "$10",
+      price: "₹14",
     },
   ];
 
@@ -165,7 +177,17 @@ export default function HomeScreen() {
           <Text style={styles.sectionTitle}>Quick Actions</Text>
           <View style={styles.quickActionsGrid}>
             {quickActions.map((action) => (
-              <TouchableOpacity key={action.id} style={styles.quickActionItem}>
+              <TouchableOpacity
+                key={action.id}
+                style={styles.quickActionItem}
+                onPress={() => {
+                  if (action.title === "My Tickets") {
+                    router.push("/(tabs)/bookings");
+                  } else if (action.title === "Request Song") {
+                    router.push("/(tabs)/choose-bus");
+                  }
+                }}
+              >
                 <LinearGradient
                   colors={action.color}
                   style={styles.quickActionGradient}
@@ -184,20 +206,20 @@ export default function HomeScreen() {
           <View style={styles.recentRoutes}>
             {recentRoutes.map((route) => (
               <TouchableOpacity key={route.id} style={styles.routeCard}>
-                <View style={styles.routeInfo}>
-                  <View style={styles.routeDestinations}>
-                    <Text style={styles.routeFrom}>{route.from}</Text>
-                    <Text style={styles.routeArrow}>→</Text>
-                    <Text style={styles.routeTo}>{route.to}</Text>
-                  </View>
+                <View style={styles.routeHeader}>
+                  <Text style={styles.routeFrom}>{route.from}</Text>
+                  <Text style={styles.routeArrow}>→</Text>
+                  <Text style={styles.routeTo}>{route.to}</Text>
+                </View>
+                <View style={styles.routeFooter}>
                   <View style={styles.routeDetails}>
                     <Text style={styles.routeTime}>{route.time}</Text>
                     <Text style={styles.routePrice}>{route.price}</Text>
                   </View>
+                  <TouchableOpacity style={styles.bookAgainButton}>
+                    <Text style={styles.bookAgainText}>Book</Text>
+                  </TouchableOpacity>
                 </View>
-                <TouchableOpacity style={styles.bookAgainButton}>
-                  <Text style={styles.bookAgainText}>Book Again</Text>
-                </TouchableOpacity>
               </TouchableOpacity>
             ))}
           </View>
@@ -407,72 +429,65 @@ const styles = StyleSheet.create({
     color: "#FFFFFF",
   },
   recentRoutes: {
-    gap: 12,
+    gap: 8,
   },
   routeCard: {
     backgroundColor: "#FFFFFF",
-    borderRadius: 12,
-    padding: 16,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    ...Platform.select({
-      ios: {
-        shadowColor: "#000",
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.1,
-        shadowRadius: 4,
-      },
-      android: {
-        elevation: 2,
-      },
-    }),
+    borderRadius: 8,
+    padding: 12,
+    borderWidth: 1,
+    borderColor: "#F0F0F0",
   },
-  routeInfo: {
-    flex: 1,
-  },
-  routeDestinations: {
+  routeHeader: {
     flexDirection: "row",
     alignItems: "center",
     marginBottom: 8,
   },
   routeFrom: {
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: "600",
-    color: "#333333",
+    color: "#000",
+    flex: 1,
   },
   routeArrow: {
-    fontSize: 16,
-    color: "#1A73E8",
+    fontSize: 14,
+    color: "#666",
     marginHorizontal: 8,
   },
   routeTo: {
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: "600",
-    color: "#333333",
+    color: "#000",
+    flex: 1,
+    textAlign: "right",
+  },
+  routeFooter: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
   },
   routeDetails: {
     flexDirection: "row",
     alignItems: "center",
+    gap: 12,
   },
   routeTime: {
-    fontSize: 14,
-    color: "#666666",
-    marginRight: 16,
+    fontSize: 12,
+    color: "#666",
   },
   routePrice: {
-    fontSize: 16,
-    fontWeight: "bold",
-    color: "#1A73E8",
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#000",
   },
   bookAgainButton: {
-    backgroundColor: "#1A73E8",
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 8,
+    backgroundColor: "#000",
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 6,
   },
   bookAgainText: {
-    fontSize: 14,
+    fontSize: 12,
     fontWeight: "600",
     color: "#FFFFFF",
   },

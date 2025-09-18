@@ -71,6 +71,20 @@ export default function TabsLayout() {
           headerTitle: "Profile",
         }}
       />
+      <Tabs.Screen
+        name="choose-bus"
+        options={{
+          href: null, // Hide from tab bar
+          headerTitle: "Choose Bus",
+        }}
+      />
+      <Tabs.Screen
+        name="song-request"
+        options={{
+          href: null, // Hide from tab bar
+          headerTitle: "Song Request",
+        }}
+      />
     </Tabs>
   );
 }

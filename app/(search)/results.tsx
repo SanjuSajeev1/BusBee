@@ -17,7 +17,7 @@ interface BusRoute {
   arrivalTime: string;
   duration: string;
   price: number;
-  type: "Express" | "Luxury" | "Economy";
+  type: "Private" | "Limited Stop";
   seatsAvailable: number;
   amenities: string[];
   rating: number;
@@ -31,9 +31,9 @@ const dummyBusData: BusRoute[] = [
     arrivalTime: "11:15 AM",
     duration: "45 min",
     price: 12,
-    type: "Express",
+    type: "Private",
     seatsAvailable: 8,
-    amenities: ["WiFi", "AC", "USB Charging"],
+    amenities: ["WiFi", "AC", "USB Charging", "Leather Seats"],
     rating: 4.8,
   },
   {
@@ -43,19 +43,26 @@ const dummyBusData: BusRoute[] = [
     arrivalTime: "11:50 AM",
     duration: "50 min",
     price: 18,
-    type: "Luxury",
+    type: "Private",
     seatsAvailable: 4,
-    amenities: ["WiFi", "AC", "Reclining Seats", "Snacks", "USB Charging"],
+    amenities: [
+      "WiFi",
+      "AC",
+      "Reclining Seats",
+      "Snacks",
+      "USB Charging",
+      "Entertainment",
+    ],
     rating: 4.9,
   },
   {
     id: "3",
-    operator: "City Comfort",
+    operator: "City Transit",
     departureTime: "11:30 AM",
-    arrivalTime: "12:10 PM",
-    duration: "40 min",
+    arrivalTime: "12:45 PM",
+    duration: "1h 15min",
     price: 8,
-    type: "Economy",
+    type: "Limited Stop",
     seatsAvailable: 12,
     amenities: ["AC", "USB Charging"],
     rating: 4.5,
@@ -66,56 +73,62 @@ const dummyBusData: BusRoute[] = [
     departureTime: "12:00 PM",
     arrivalTime: "12:45 PM",
     duration: "45 min",
-    price: 10,
-    type: "Express",
+    price: 15,
+    type: "Private",
     seatsAvailable: 6,
-    amenities: ["WiFi", "AC", "USB Charging"],
+    amenities: ["WiFi", "AC", "USB Charging", "Refreshments"],
     rating: 4.6,
   },
   {
     id: "5",
-    operator: "Elite Coach",
+    operator: "Metro Express",
     departureTime: "12:30 PM",
-    arrivalTime: "1:25 PM",
-    duration: "55 min",
-    price: 22,
-    type: "Luxury",
-    seatsAvailable: 2,
-    amenities: ["WiFi", "AC", "Reclining Seats", "Entertainment", "Snacks", "USB Charging"],
-    rating: 4.9,
+    arrivalTime: "2:00 PM",
+    duration: "1h 30min",
+    price: 6,
+    type: "Limited Stop",
+    seatsAvailable: 18,
+    amenities: ["AC", "USB Charging"],
+    rating: 4.3,
   },
   {
     id: "6",
-    operator: "Budget Bus",
+    operator: "Elite Coach",
     departureTime: "1:00 PM",
-    arrivalTime: "1:40 PM",
-    duration: "40 min",
-    price: 6,
-    type: "Economy",
-    seatsAvailable: 15,
-    amenities: ["AC"],
-    rating: 4.2,
+    arrivalTime: "1:55 PM",
+    duration: "55 min",
+    price: 22,
+    type: "Private",
+    seatsAvailable: 2,
+    amenities: [
+      "WiFi",
+      "AC",
+      "Reclining Seats",
+      "Entertainment",
+      "Snacks",
+      "USB Charging",
+    ],
+    rating: 4.9,
   },
 ];
 
 export default function BusResultsScreen() {
   const { from, to } = useLocalSearchParams<{ from: string; to: string }>();
-  const [selectedFilter, setSelectedFilter] = useState("all");
+  const [selectedFilter, setSelectedFilter] = useState("All");
 
-  const filters = ["all", "Express", "Luxury", "Economy"];
+  const filters = ["All", "Private", "Limited Stop"];
 
-  const filteredBuses = selectedFilter === "all" 
-    ? dummyBusData 
-    : dummyBusData.filter(bus => bus.type === selectedFilter);
+  const filteredBuses =
+    selectedFilter === "All"
+      ? dummyBusData
+      : dummyBusData.filter((bus) => bus.type === selectedFilter);
 
   const getTypeColor = (type: string) => {
     switch (type) {
-      case "Express":
-        return "#3B82F6";
-      case "Luxury":
+      case "Private":
         return "#8B5CF6";
-      case "Economy":
-        return "#10B981";
+      case "Limited Stop":
+        return "#3B82F6";
       default:
         return "#6B7280";
     }
@@ -139,15 +152,22 @@ export default function BusResultsScreen() {
   return (
     <View style={styles.container}>
       <StatusBar style="dark" />
-      
+
       {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
+        <TouchableOpacity
+          style={styles.backButton}
+          onPress={() => router.back()}
+        >
           <Text style={styles.backButtonText}>←</Text>
         </TouchableOpacity>
         <View style={styles.routeInfo}>
-          <Text style={styles.routeText}>{from} → {to}</Text>
-          <Text style={styles.routeSubtext}>Today • {filteredBuses.length} buses</Text>
+          <Text style={styles.routeText}>
+            {from} → {to}
+          </Text>
+          <Text style={styles.routeSubtext}>
+            Today • {filteredBuses.length} buses
+          </Text>
         </View>
         <View style={styles.placeholder} />
       </View>
@@ -178,7 +198,10 @@ export default function BusResultsScreen() {
       </View>
 
       {/* Bus Results */}
-      <ScrollView style={styles.resultsList} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        style={styles.resultsList}
+        showsVerticalScrollIndicator={false}
+      >
         {filteredBuses.map((bus) => (
           <View key={bus.id} style={styles.busCard}>
             {/* Bus Header */}
@@ -196,10 +219,7 @@ export default function BusResultsScreen() {
                 ]}
               >
                 <Text
-                  style={[
-                    styles.typeText,
-                    { color: getTypeColor(bus.type) },
-                  ]}
+                  style={[styles.typeText, { color: getTypeColor(bus.type) }]}
                 >
                   {bus.type}
                 </Text>
@@ -222,30 +242,10 @@ export default function BusResultsScreen() {
               </View>
             </View>
 
-            {/* Amenities */}
-            <View style={styles.amenitiesContainer}>
-              <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-                {bus.amenities.map((amenity, index) => (
-                  <View key={index} style={styles.amenityChip}>
-                    <Text style={styles.amenityText}>{amenity}</Text>
-                  </View>
-                ))}
-              </ScrollView>
-            </View>
-
-            {/* Price and Book Button */}
-            <View style={styles.bookingContainer}>
-              <View style={styles.priceContainer}>
-                <Text style={styles.price}>${bus.price}</Text>
-                <Text style={styles.seatsLeft}>{bus.seatsAvailable} seats left</Text>
-              </View>
-              <TouchableOpacity
-                style={styles.bookButton}
-                onPress={() => handleBookBus(bus)}
-              >
-                <Text style={styles.bookButtonText}>Book Now</Text>
-              </TouchableOpacity>
-            </View>
+            {/* Price - Commented out for now */}
+            {/* <View style={styles.priceSection}>
+              <Text style={styles.price}>${bus.price}</Text>
+            </View> */}
           </View>
         ))}
       </ScrollView>
@@ -418,52 +418,15 @@ const styles = StyleSheet.create({
     backgroundColor: "#D1D5DB",
     width: "100%",
   },
-  amenitiesContainer: {
-    marginBottom: 16,
-  },
-  amenityChip: {
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    backgroundColor: "#F3F4F6",
-    borderRadius: 6,
-    marginRight: 8,
-  },
-  amenityText: {
-    fontSize: 12,
-    color: "#6B7280",
-    fontWeight: "500",
-  },
-  bookingContainer: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
+  priceSection: {
     paddingTop: 16,
     borderTopWidth: 1,
     borderTopColor: "#F3F4F6",
-  },
-  priceContainer: {
-    flex: 1,
+    alignItems: "flex-end",
   },
   price: {
-    fontSize: 20,
+    fontSize: 24,
     fontWeight: "700",
     color: "#111827",
-    marginBottom: 2,
-  },
-  seatsLeft: {
-    fontSize: 12,
-    color: "#EF4444",
-    fontWeight: "500",
-  },
-  bookButton: {
-    backgroundColor: "#111827",
-    paddingHorizontal: 24,
-    paddingVertical: 12,
-    borderRadius: 12,
-  },
-  bookButtonText: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: "#FFFFFF",
   },
 });

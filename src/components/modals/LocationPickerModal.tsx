@@ -28,18 +28,38 @@ interface LocationPickerModalProps {
 }
 
 const dummyLocations: Location[] = [
-  { id: "1", name: "Downtown Terminal", subtitle: "Main bus station", icon: "🏢" },
+  {
+    id: "1",
+    name: "Downtown Terminal",
+    subtitle: "Main bus station",
+    icon: "🏢",
+  },
   { id: "2", name: "Airport", subtitle: "International Airport", icon: "✈️" },
-  { id: "3", name: "University Campus", subtitle: "State University", icon: "🎓" },
+  {
+    id: "3",
+    name: "University Campus",
+    subtitle: "State University",
+    icon: "🎓",
+  },
   { id: "4", name: "Shopping Mall", subtitle: "City Center Mall", icon: "🛍️" },
-  { id: "5", name: "Business District", subtitle: "Financial Center", icon: "🏦" },
+  {
+    id: "5",
+    name: "Business District",
+    subtitle: "Financial Center",
+    icon: "🏦",
+  },
   { id: "6", name: "Train Station", subtitle: "Central Railway", icon: "🚂" },
   { id: "7", name: "Hospital", subtitle: "General Hospital", icon: "🏥" },
   { id: "8", name: "Beach Resort", subtitle: "Coastal Area", icon: "🏖️" },
   { id: "9", name: "Tech Park", subtitle: "IT Hub", icon: "💻" },
   { id: "10", name: "Sports Complex", subtitle: "Stadium Area", icon: "⚽" },
   { id: "11", name: "Residential Area", subtitle: "Green Valley", icon: "🏘️" },
-  { id: "12", name: "Industrial Zone", subtitle: "Manufacturing Hub", icon: "🏭" },
+  {
+    id: "12",
+    name: "Industrial Zone",
+    subtitle: "Manufacturing Hub",
+    icon: "🏭",
+  },
 ];
 
 export default function LocationPickerModal({
@@ -50,9 +70,10 @@ export default function LocationPickerModal({
 }: LocationPickerModalProps) {
   const [searchQuery, setSearchQuery] = useState("");
 
-  const filteredLocations = dummyLocations.filter(location =>
-    location.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    location.subtitle.toLowerCase().includes(searchQuery.toLowerCase())
+  const filteredLocations = dummyLocations.filter(
+    (location) =>
+      location.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      location.subtitle.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   const handleLocationSelect = (location: Location) => {
@@ -133,7 +154,9 @@ export default function LocationPickerModal({
               <Text style={styles.iconText}>📍</Text>
             </View>
             <View style={styles.locationInfo}>
-              <Text style={styles.currentLocationText}>Use Current Location</Text>
+              <Text style={styles.currentLocationText}>
+                Use Current Location
+              </Text>
               <Text style={styles.currentLocationSubtitle}>GPS location</Text>
             </View>
           </TouchableOpacity>

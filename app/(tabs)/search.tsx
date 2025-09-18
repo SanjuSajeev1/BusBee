@@ -16,9 +16,8 @@ export default function SearchScreen() {
 
   const filters = [
     { id: "all", title: "All Buses", count: 24 },
-    { id: "express", title: "Express", count: 8 },
-    { id: "luxury", title: "Luxury", count: 6 },
-    { id: "economy", title: "Economy", count: 10 },
+    { id: "private", title: "Private", count: 12 },
+    { id: "limited", title: "Limited Stop", count: 12 },
   ];
 
   const busRoutes = [
@@ -29,17 +28,17 @@ export default function SearchScreen() {
       nextDeparture: "10:30 AM",
       duration: "45 min",
       price: "$12",
-      type: "express",
+      type: "private",
       seats: 8,
     },
     {
       id: 2,
       route: "Mall → University",
-      operator: "City Comfort",
+      operator: "City Transit",
       nextDeparture: "11:15 AM",
-      duration: "25 min",
+      duration: "1h 15min",
       price: "$8",
-      type: "economy",
+      type: "limited",
       seats: 12,
     },
     {
@@ -48,8 +47,8 @@ export default function SearchScreen() {
       operator: "Luxury Lines",
       nextDeparture: "11:45 AM",
       duration: "35 min",
-      price: "$15",
-      type: "luxury",
+      price: "$18",
+      type: "private",
       seats: 4,
     },
   ];

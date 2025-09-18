@@ -52,12 +52,18 @@ export default function HomeScreen() {
 
   const handleFindBuses = () => {
     if (!fromLocation || !toLocation) {
-      Alert.alert("Missing Information", "Please select both departure and destination locations");
+      Alert.alert(
+        "Missing Information",
+        "Please select both departure and destination locations"
+      );
       return;
     }
 
     if (fromLocation === toLocation) {
-      Alert.alert("Invalid Route", "Departure and destination cannot be the same");
+      Alert.alert(
+        "Invalid Route",
+        "Departure and destination cannot be the same"
+      );
       return;
     }
 
@@ -109,16 +115,21 @@ export default function HomeScreen() {
                   style={styles.searchInput}
                   onPress={() => setShowFromPicker(true)}
                 >
-                  <Text style={[
-                    styles.searchInputText,
-                    !fromLocation && styles.placeholderText
-                  ]}>
+                  <Text
+                    style={[
+                      styles.searchInputText,
+                      !fromLocation && styles.placeholderText,
+                    ]}
+                  >
                     {fromLocation || "Select departure location"}
                   </Text>
                 </TouchableOpacity>
               </View>
 
-              <TouchableOpacity style={styles.swapButton} onPress={handleSwapLocations}>
+              <TouchableOpacity
+                style={styles.swapButton}
+                onPress={handleSwapLocations}
+              >
                 <Text style={styles.swapIcon}>⇅</Text>
               </TouchableOpacity>
 
@@ -128,17 +139,22 @@ export default function HomeScreen() {
                   style={styles.searchInput}
                   onPress={() => setShowToPicker(true)}
                 >
-                  <Text style={[
-                    styles.searchInputText,
-                    !toLocation && styles.placeholderText
-                  ]}>
+                  <Text
+                    style={[
+                      styles.searchInputText,
+                      !toLocation && styles.placeholderText,
+                    ]}
+                  >
                     {toLocation || "Select destination"}
                   </Text>
                 </TouchableOpacity>
               </View>
             </View>
 
-            <TouchableOpacity style={styles.searchButton} onPress={handleFindBuses}>
+            <TouchableOpacity
+              style={styles.searchButton}
+              onPress={handleFindBuses}
+            >
               <Text style={styles.searchButtonText}>Find Buses</Text>
             </TouchableOpacity>
           </View>

@@ -282,18 +282,21 @@ export default function BusResultsScreen() {
         showsVerticalScrollIndicator={false}
       >
         {filteredBuses.map((bus) => (
-          <TouchableOpacity 
-            key={bus.id} 
+          <TouchableOpacity
+            key={bus.id}
             style={styles.busCard}
-            onPress={() => router.push({
-              pathname: "/(search)/bus-tracking",
-              params: {
-                busId: bus.id,
-                operator: bus.operator,
-                from,
-                to,
-              },
-            })}
+            onPress={() =>
+              router.push({
+                pathname: "/(search)/bus-tracking",
+                params: {
+                  busId: bus.id,
+                  operator: bus.operator,
+                  from,
+                  to,
+                  price: bus.price.toString(),
+                },
+              })
+            }
             activeOpacity={0.7}
           >
             {/* Bus Header */}

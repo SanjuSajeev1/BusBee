@@ -10,6 +10,9 @@ import {
 } from "react-native";
 import { router, useLocalSearchParams } from "expo-router";
 import { StatusBar } from "expo-status-bar";
+import RouteSelectionModal from "../../src/components/modals/RouteSelectionModal";
+import TicketAmountModal from "../../src/components/modals/TicketAmountModal";
+import UPIPaymentModal from "../../src/components/modals/UPIPaymentModal";
 
 interface BusStop {
   id: string;
@@ -28,30 +31,66 @@ const dummyBusStops: BusStop[] = [
   },
   {
     id: "2",
+    name: "Central Park",
+    estimatedTime: "10:35 AM",
+    status: "completed",
+  },
+  {
+    id: "3",
     name: "City Center Mall",
     estimatedTime: "10:38 AM",
     status: "completed",
   },
   {
-    id: "3",
-    name: "University Campus",
-    estimatedTime: "10:45 AM",
+    id: "4",
+    name: "Metro Station",
+    estimatedTime: "10:42 AM",
     status: "current",
   },
   {
-    id: "4",
+    id: "5",
+    name: "University Campus",
+    estimatedTime: "10:45 AM",
+    status: "upcoming",
+  },
+  {
+    id: "6",
+    name: "Medical Center",
+    estimatedTime: "10:48 AM",
+    status: "upcoming",
+  },
+  {
+    id: "7",
     name: "Business District",
     estimatedTime: "10:52 AM",
     status: "upcoming",
   },
   {
-    id: "5",
+    id: "8",
+    name: "Sports Complex",
+    estimatedTime: "10:56 AM",
+    status: "upcoming",
+  },
+  {
+    id: "9",
     name: "Train Station",
     estimatedTime: "11:00 AM",
     status: "upcoming",
   },
   {
-    id: "6",
+    id: "10",
+    name: "Tech Park",
+    estimatedTime: "11:05 AM",
+    status: "upcoming",
+  },
+  {
+    id: "11",
+    name: "Residential Area",
+    estimatedTime: "11:10 AM",
+    status: "upcoming",
+  },
+  {
+    id: "12",
     name: "Airport Terminal",
     estimatedTime: "11:15 AM",
     status: "upcoming",
@@ -60,15 +99,21 @@ const dummyBusStops: BusStop[] = [
 ];
 
 export default function BusTrackingScreen() {
-  const { busId, operator, from, to } = useLocalSearchParams<{
+  const { busId, operator, from, to, price } = useLocalSearchParams<{
     busId: string;
     operator: string;
     from: string;
     to: string;
+    price?: string;
   }>();
 
   const [busStops] = useState(dummyBusStops);
-  const [currentProgress, setCurrentProgress] = useState(2); // Bus is at stop 3 (index 2)
+  const [currentProgress, setCurrentProgress] = useState(3); // Bus is at stop 4 (index 3)
+  const [isBooked, setIsBooked] = useState(false);
+  const [showRouteSelection, setShowRouteSelection] = useState(false);
+  const [showTicketAmount, setShowTicketAmount] = useState(false);
+  const [showUPIPayment, setShowUPIPayment] = useState(false);
+  const [selectedRoute, setSelectedRoute] = useState<{from: any, to: any, amount: number} | null>(null);
   const pulseAnim = new Animated.Value(1);
 
   useEffect(() => {
@@ -91,6 +136,29 @@ export default function BusTrackingScreen() {
 
     return () => pulse.stop();
   }, []);
+
+  const handlePayForTicket = () => {
+    setShowRouteSelection(true);
+  };
+
+  const handleRouteSelection = (fromStop: any, toStop: any) => {
+    const distance = Math.abs(parseInt(fromStop.id) - parseInt(toStop.id));
+    const basePrice = 3;
+    const amount = basePrice + (distance * 1.5); // Calculate based on distance
+    
+    setSelectedRoute({ from: fromStop, to: toStop, amount: Math.round(amount) });
+    setShowTicketAmount(true);
+  };
+
+  const handleProceedToPayment = () => {
+    setShowTicketAmount(false);
+    setShowUPIPayment(true);
+  };
+
+  const handlePaymentSuccess = () => {
+    setIsBooked(true);
+    setSelectedRoute(null);
+  };
 
   const getStopIcon = (stop: BusStop, index: number) => {
     if (stop.status === "completed") return "✅";
@@ -131,51 +199,40 @@ export default function BusTrackingScreen() {
 
       {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
+        <TouchableOpacity
+          style={styles.backButton}
+          onPress={() => router.back()}
+        >
           <Text style={styles.backButtonText}>←</Text>
         </TouchableOpacity>
         <View style={styles.busInfo}>
           <Text style={styles.operatorName}>{operator}</Text>
-          <Text style={styles.routeText}>{from} → {to}</Text>
+          <Text style={styles.routeText}>
+            {from} → {to}
+          </Text>
         </View>
         <View style={styles.placeholder} />
       </View>
 
-      {/* Live Status */}
-      <View style={styles.liveStatusContainer}>
-        <View style={styles.liveIndicator}>
-          <Animated.View
-            style={[
-              styles.liveDot,
-              { transform: [{ scale: pulseAnim }] },
-            ]}
-          />
-          <Text style={styles.liveText}>Live Tracking</Text>
-        </View>
+      {/* Minimal Status */}
+      <View style={styles.statusContainer}>
+        <Animated.View
+          style={[styles.liveDot, { transform: [{ scale: pulseAnim }] }]}
+        />
         <Text style={styles.statusText}>
-          Currently at: {busStops.find(stop => stop.status === "current")?.name}
-        </Text>
-      </View>
-
-      {/* Progress Bar */}
-      <View style={styles.progressContainer}>
-        <View style={styles.progressBar}>
-          <View
-            style={[
-              styles.progressFill,
-              { width: `${((currentProgress + 1) / busStops.length) * 100}%` },
-            ]}
-          />
-        </View>
-        <Text style={styles.progressText}>
-          Stop {currentProgress + 1} of {busStops.length}
+          Currently at{" "}
+          {busStops.find((stop) => stop.status === "current")?.name}
         </Text>
       </View>
 
       {/* Bus Stops List */}
-      <ScrollView style={styles.stopsList} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        style={styles.stopsList}
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.stopsContent}
+      >
         <Text style={styles.stopsTitle}>Route & Schedule</Text>
-        
+
         {busStops.map((stop, index) => (
           <View key={stop.id} style={styles.stopItem}>
             <View style={styles.stopIndicator}>
@@ -201,50 +258,75 @@ export default function BusTrackingScreen() {
             </View>
 
             <View style={styles.stopDetails}>
-              <View style={styles.stopHeader}>
-                <Text
-                  style={[
-                    styles.stopName,
-                    stop.status === "current" && styles.currentStopName,
-                    stop.isUserStop && styles.userStopName,
-                  ]}
-                >
-                  {stop.name}
-                  {stop.isUserStop && " (Your Stop)"}
-                </Text>
-                <Text
-                  style={[
-                    styles.stopTime,
-                    { color: getTimeColor(stop) },
-                  ]}
-                >
-                  {stop.estimatedTime}
-                </Text>
-              </View>
-              
-              {stop.status === "current" && (
-                <Text style={styles.currentStatus}>Bus is currently here</Text>
-              )}
-              {stop.status === "completed" && (
-                <Text style={styles.completedStatus}>Departed</Text>
-              )}
-              {stop.isUserStop && stop.status === "upcoming" && (
-                <Text style={styles.userStopStatus}>Your destination</Text>
-              )}
+              <Text
+                style={[
+                  styles.stopName,
+                  stop.status === "current" && styles.currentStopName,
+                  stop.isUserStop && styles.userStopName,
+                ]}
+              >
+                {stop.name}
+                {stop.isUserStop && " (Your Stop)"}
+              </Text>
+              <Text style={[styles.stopTime, { color: getTimeColor(stop) }]}>
+                {stop.estimatedTime}
+              </Text>
             </View>
           </View>
         ))}
       </ScrollView>
 
-      {/* Bottom Actions */}
-      <View style={styles.bottomActions}>
-        <TouchableOpacity style={styles.refreshButton}>
-          <Text style={styles.refreshButtonText}>🔄 Refresh Location</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.notifyButton}>
-          <Text style={styles.notifyButtonText}>🔔 Notify on Arrival</Text>
-        </TouchableOpacity>
-      </View>
+      {/* Ticket Booking Section */}
+      {!isBooked ? (
+        <View style={styles.bookingSection}>
+          <TouchableOpacity
+            style={styles.payButton}
+            onPress={handlePayForTicket}
+          >
+            <Text style={styles.payButtonText}>
+              {isBooked ? "Processing..." : "Pay for Ticket"}
+            </Text>
+          </TouchableOpacity>
+        </View>
+      ) : (
+        <View style={styles.bookedSection}>
+          <View style={styles.bookedInfo}>
+            <Text style={styles.bookedIcon}>✅</Text>
+            <Text style={styles.bookedText}>Ticket Booked!</Text>
+          </View>
+          <TouchableOpacity style={styles.viewTicketButton}>
+            <Text style={styles.viewTicketText}>View Ticket</Text>
+          </TouchableOpacity>
+        </View>
+      )}
+
+      {/* Modals */}
+      <RouteSelectionModal
+        visible={showRouteSelection}
+        stops={busStops.map(stop => ({
+          id: stop.id,
+          name: stop.name,
+          time: stop.estimatedTime,
+        }))}
+        onClose={() => setShowRouteSelection(false)}
+        onConfirm={handleRouteSelection}
+      />
+
+      <TicketAmountModal
+        visible={showTicketAmount}
+        fromStop={selectedRoute?.from?.name || ""}
+        toStop={selectedRoute?.to?.name || ""}
+        amount={selectedRoute?.amount || 0}
+        onClose={() => setShowTicketAmount(false)}
+        onProceedToPayment={handleProceedToPayment}
+      />
+
+      <UPIPaymentModal
+        visible={showUPIPayment}
+        amount={selectedRoute?.amount || 0}
+        onClose={() => setShowUPIPayment(false)}
+        onPaymentSuccess={handlePaymentSuccess}
+      />
     </View>
   );
 }
@@ -294,62 +376,34 @@ const styles = StyleSheet.create({
   placeholder: {
     width: 40,
   },
-  liveStatusContainer: {
+  statusContainer: {
     backgroundColor: "#FFFFFF",
     paddingHorizontal: 20,
-    paddingVertical: 16,
+    paddingVertical: 12,
     borderBottomWidth: 1,
     borderBottomColor: "#F3F4F6",
-  },
-  liveIndicator: {
     flexDirection: "row",
     alignItems: "center",
-    marginBottom: 8,
   },
   liveDot: {
     width: 8,
     height: 8,
     borderRadius: 4,
     backgroundColor: "#EF4444",
-    marginRight: 8,
-  },
-  liveText: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: "#EF4444",
+    marginRight: 12,
   },
   statusText: {
-    fontSize: 16,
+    fontSize: 14,
     color: "#111827",
     fontWeight: "500",
-  },
-  progressContainer: {
-    backgroundColor: "#FFFFFF",
-    paddingHorizontal: 20,
-    paddingVertical: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: "#F3F4F6",
-  },
-  progressBar: {
-    height: 4,
-    backgroundColor: "#E5E7EB",
-    borderRadius: 2,
-    marginBottom: 8,
-  },
-  progressFill: {
-    height: "100%",
-    backgroundColor: "#3B82F6",
-    borderRadius: 2,
-  },
-  progressText: {
-    fontSize: 12,
-    color: "#6B7280",
-    textAlign: "center",
   },
   stopsList: {
     flex: 1,
     paddingHorizontal: 20,
     paddingTop: 20,
+  },
+  stopsContent: {
+    paddingBottom: 100, // Add bottom padding to prevent overlap
   },
   stopsTitle: {
     fontSize: 18,
@@ -359,101 +413,98 @@ const styles = StyleSheet.create({
   },
   stopItem: {
     flexDirection: "row",
-    marginBottom: 8,
+    alignItems: "center",
+    paddingVertical: 8,
+    marginBottom: 4,
   },
   stopIndicator: {
     alignItems: "center",
-    marginRight: 16,
+    marginRight: 12,
   },
   stopDot: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  stopIcon: {
-    fontSize: 16,
-    color: "#FFFFFF",
+    width: 8,
+    height: 8,
+    borderRadius: 4,
   },
   stopLine: {
-    width: 2,
-    height: 40,
-    marginTop: 4,
+    width: 1,
+    height: 24,
+    marginTop: 2,
   },
   stopDetails: {
     flex: 1,
-    paddingVertical: 4,
-  },
-  stopHeader: {
     flexDirection: "row",
     justifyContent: "space-between",
-    alignItems: "flex-start",
-    marginBottom: 4,
+    alignItems: "center",
   },
   stopName: {
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: "500",
     color: "#111827",
     flex: 1,
-    marginRight: 12,
   },
   currentStopName: {
-    fontWeight: "700",
+    fontWeight: "600",
     color: "#3B82F6",
   },
   userStopName: {
-    fontWeight: "700",
+    fontWeight: "600",
     color: "#EF4444",
   },
   stopTime: {
-    fontSize: 14,
-    fontWeight: "600",
-  },
-  currentStatus: {
     fontSize: 12,
-    color: "#3B82F6",
     fontWeight: "500",
   },
-  completedStatus: {
-    fontSize: 12,
-    color: "#6B7280",
-    fontWeight: "500",
-  },
-  userStopStatus: {
-    fontSize: 12,
-    color: "#EF4444",
-    fontWeight: "500",
-  },
-  bottomActions: {
-    flexDirection: "row",
+  bookingSection: {
+    backgroundColor: "#FFFFFF",
     paddingHorizontal: 20,
     paddingVertical: 16,
-    backgroundColor: "#FFFFFF",
     borderTopWidth: 1,
     borderTopColor: "#F3F4F6",
-    gap: 12,
   },
-  refreshButton: {
-    flex: 1,
-    backgroundColor: "#F3F4F6",
-    paddingVertical: 12,
-    borderRadius: 12,
-    alignItems: "center",
-  },
-  refreshButtonText: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: "#374151",
-  },
-  notifyButton: {
-    flex: 1,
+  payButton: {
     backgroundColor: "#111827",
-    paddingVertical: 12,
+    paddingVertical: 16,
     borderRadius: 12,
     alignItems: "center",
   },
-  notifyButtonText: {
+  payButtonText: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#FFFFFF",
+  },
+  bookedSection: {
+    backgroundColor: "#F0FDF4",
+    paddingHorizontal: 20,
+    paddingVertical: 20,
+    borderTopWidth: 1,
+    borderTopColor: "#BBF7D0",
+    borderBottomWidth: 1,
+    borderBottomColor: "#BBF7D0",
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  bookedInfo: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  bookedIcon: {
+    fontSize: 20,
+    marginRight: 8,
+  },
+  bookedText: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#166534",
+  },
+  viewTicketButton: {
+    backgroundColor: "#16A34A",
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 8,
+  },
+  viewTicketText: {
     fontSize: 14,
     fontWeight: "600",
     color: "#FFFFFF",

@@ -18,6 +18,13 @@ export default function SearchLayout() {
           presentation: "modal",
         }}
       />
+      <Stack.Screen
+        name="multi-leg-routes"
+        options={{
+          headerShown: false,
+          presentation: "modal",
+        }}
+      />
     </Stack>
   );
 }

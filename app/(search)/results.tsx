@@ -152,6 +152,7 @@ export default function BusResultsScreen() {
   const { from, to } = useLocalSearchParams<{ from: string; to: string }>();
   const [selectedFilter, setSelectedFilter] = useState("All");
   const [selectedTimeFilter, setSelectedTimeFilter] = useState("All Times");
+  const [hasDirectRoutes, setHasDirectRoutes] = useState(true);
 
   const filters = ["All", "Private", "Limited Stop"];
   const timeFilters = ["All Times", "Morning", "Afternoon", "Evening"];
@@ -200,6 +201,77 @@ export default function BusResultsScreen() {
       },
     });
   };
+
+  const handleFindMultiLegRoutes = () => {
+    // Navigate to multi-leg routes screen
+    router.push({
+      pathname: "/(search)/multi-leg-routes",
+      params: {
+        from,
+        to,
+      },
+    });
+  };
+
+  // Simulate checking for direct routes availability
+  // In a real app, this would come from your API
+  const checkDirectRoutesAvailability = () => {
+    // For demo purposes, simulate no direct routes for certain routes
+    const noDirectRoutes = [
+      "Edavanakkad → TVM",
+      "Edavanakkad → Trivandrum",
+      "Edavanakkad → Thiruvananthapuram",
+      "Edavanakkad → TVM",
+      "Kochi → Trivandrum",
+      "Kochi → TVM",
+      "Calicut → Thiruvananthapuram",
+      "Calicut → TVM",
+    ];
+
+    // Create variations of the current route for better matching
+    const currentRouteVariations = [
+      `${from} → ${to}`,
+      `${from?.toLowerCase()} → ${to?.toLowerCase()}`,
+      `${from?.toUpperCase()} → ${to?.toUpperCase()}`,
+    ];
+
+    // Check if any variation matches the no-direct-routes list
+    const hasNoDirectRoute = noDirectRoutes.some((route) =>
+      currentRouteVariations.some((variation) => {
+        const variationLower = variation.toLowerCase();
+        const routeLower = route.toLowerCase();
+
+        // Exact match
+        if (variationLower === routeLower) return true;
+
+        // Partial match - check if from/to locations match
+        const variationParts = variationLower.split(" → ");
+        const routeParts = routeLower.split(" → ");
+
+        if (variationParts.length === 2 && routeParts.length === 2) {
+          const [fromVar, toVar] = variationParts;
+          const [fromRoute, toRoute] = routeParts;
+
+          // Check if locations match (case-insensitive)
+          return fromVar.includes(fromRoute) && toVar.includes(toRoute);
+        }
+
+        return false;
+      })
+    );
+
+    return !hasNoDirectRoute;
+  };
+
+  React.useEffect(() => {
+    // Debug logging to help troubleshoot
+    console.log("Search params:", { from, to });
+    const currentRoute = `${from} → ${to}`;
+    console.log("Current route:", currentRoute);
+    const hasDirect = checkDirectRoutesAvailability();
+    console.log("Has direct routes:", hasDirect);
+    setHasDirectRoutes(hasDirect);
+  }, [from, to]);
 
   return (
     <View style={styles.container}>
@@ -276,73 +348,125 @@ export default function BusResultsScreen() {
         </ScrollView>
       </View>
 
+      {/* Multi-leg Routes Button - Show when no direct routes */}
+      {!hasDirectRoutes && (
+        <View style={styles.multiLegContainer}>
+          <View style={styles.multiLegCard}>
+            <View style={styles.multiLegHeader}>
+              <Text style={styles.multiLegTitle}>
+                No Direct Routes Available
+              </Text>
+              <Text style={styles.multiLegSubtitle}>
+                Try multi-leg journeys with transfers
+              </Text>
+            </View>
+            <TouchableOpacity
+              style={styles.multiLegButton}
+              onPress={handleFindMultiLegRoutes}
+            >
+              <Text style={styles.multiLegButtonText}>
+                Find Multi-leg Routes
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      )}
+
       {/* Bus Results */}
       <ScrollView
         style={styles.resultsList}
         showsVerticalScrollIndicator={false}
       >
-        {filteredBuses.map((bus) => (
-          <TouchableOpacity
-            key={bus.id}
-            style={styles.busCard}
-            onPress={() =>
-              router.push({
-                pathname: "/(search)/bus-tracking",
-                params: {
-                  busId: bus.id,
-                  operator: bus.operator,
-                  from,
-                  to,
-                  price: bus.price.toString(),
-                },
-              })
-            }
-            activeOpacity={0.7}
-          >
-            {/* Bus Header */}
-            <View style={styles.busHeader}>
-              <View style={styles.operatorInfo}>
-                <Text style={styles.operatorName}>{bus.operator}</Text>
-                <View style={styles.ratingContainer}>
-                  <Text style={styles.ratingText}>⭐ {bus.rating}</Text>
-                </View>
-              </View>
-              <View
-                style={[
-                  styles.typeBadge,
-                  { backgroundColor: getTypeColor(bus.type) + "20" },
-                ]}
+        {hasDirectRoutes && (
+          <>
+            {/* Show direct routes */}
+            {filteredBuses.map((bus) => (
+              <TouchableOpacity
+                key={bus.id}
+                style={styles.busCard}
+                onPress={() =>
+                  router.push({
+                    pathname: "/(search)/bus-tracking",
+                    params: {
+                      busId: bus.id,
+                      operator: bus.operator,
+                      from,
+                      to,
+                      price: bus.price.toString(),
+                    },
+                  })
+                }
+                activeOpacity={0.7}
               >
-                <Text
-                  style={[styles.typeText, { color: getTypeColor(bus.type) }]}
-                >
-                  {bus.type}
-                </Text>
-              </View>
-            </View>
+                {/* Bus Header */}
+                <View style={styles.busHeader}>
+                  <View style={styles.operatorInfo}>
+                    <Text style={styles.operatorName}>{bus.operator}</Text>
+                    <View style={styles.ratingContainer}>
+                      <Text style={styles.ratingText}>⭐ {bus.rating}</Text>
+                    </View>
+                  </View>
+                  <View
+                    style={[
+                      styles.typeBadge,
+                      { backgroundColor: getTypeColor(bus.type) + "20" },
+                    ]}
+                  >
+                    <Text
+                      style={[
+                        styles.typeText,
+                        { color: getTypeColor(bus.type) },
+                      ]}
+                    >
+                      {bus.type}
+                    </Text>
+                  </View>
+                </View>
 
-            {/* Time and Duration */}
-            <View style={styles.timeContainer}>
-              <View style={styles.timeInfo}>
-                <Text style={styles.time}>{bus.departureTime}</Text>
-                <Text style={styles.location}>{from}</Text>
-              </View>
-              <View style={styles.durationContainer}>
-                <Text style={styles.duration}>{bus.duration}</Text>
-                <View style={styles.durationLine} />
-              </View>
-              <View style={styles.timeInfo}>
-                <Text style={styles.time}>{bus.arrivalTime}</Text>
-                <Text style={styles.location}>{to}</Text>
-              </View>
-            </View>
+                {/* Time and Duration */}
+                <View style={styles.timeContainer}>
+                  <View style={styles.timeInfo}>
+                    <Text style={styles.time}>{bus.departureTime}</Text>
+                    <Text style={styles.location}>{from}</Text>
+                  </View>
+                  <View style={styles.durationContainer}>
+                    <Text style={styles.duration}>{bus.duration}</Text>
+                    <View style={styles.durationLine} />
+                  </View>
+                  <View style={styles.timeInfo}>
+                    <Text style={styles.time}>{bus.arrivalTime}</Text>
+                    <Text style={styles.location}>{to}</Text>
+                  </View>
+                </View>
 
-            {/* Price - Commented out for now */}
-            {/* <View style={styles.priceSection}>
+                {/* Price - Commented out for now */}
+                {/* <View style={styles.priceSection}>
               <Text style={styles.price}>${bus.price}</Text>
             </View> */}
-          </TouchableOpacity>
-        ))}
+              </TouchableOpacity>
+            ))}
+
+            {/* Multi-leg Routes Option */}
+            <View style={styles.alternativeRoutesCard}>
+              <View style={styles.alternativeRoutesHeader}>
+                <Text style={styles.alternativeRoutesTitle}>
+                  Looking for alternatives?
+                </Text>
+                <Text style={styles.alternativeRoutesSubtitle}>
+                  Explore multi-leg routes with transfers
+                </Text>
+              </View>
+              <TouchableOpacity
+                style={styles.alternativeRoutesButton}
+                onPress={handleFindMultiLegRoutes}
+              >
+                <Text style={styles.alternativeRoutesButtonText}>
+                  Find Multi-leg Routes
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </>
+        )}
       </ScrollView>
     </View>
   );
@@ -529,5 +653,106 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: "700",
     color: "#111827",
+  },
+  multiLegContainer: {
+    paddingHorizontal: 20,
+    paddingTop: 16,
+  },
+  multiLegCard: {
+    backgroundColor: "#FEF3C7",
+    borderRadius: 12,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: "#FCD34D",
+  },
+  multiLegHeader: {
+    marginBottom: 16,
+  },
+  multiLegTitle: {
+    fontSize: 16,
+    fontWeight: "700",
+    color: "#92400E",
+    marginBottom: 4,
+  },
+  multiLegSubtitle: {
+    fontSize: 14,
+    color: "#A16207",
+    lineHeight: 20,
+  },
+  multiLegButton: {
+    backgroundColor: "#F59E0B",
+    borderRadius: 8,
+    paddingVertical: 12,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  multiLegButtonText: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#FFFFFF",
+  },
+  alternativeRoutesCard: {
+    backgroundColor: "#F0F9FF",
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: "#BAE6FD",
+  },
+  alternativeRoutesHeader: {
+    marginBottom: 16,
+  },
+  alternativeRoutesTitle: {
+    fontSize: 16,
+    fontWeight: "700",
+    color: "#0C4A6E",
+    marginBottom: 4,
+  },
+  alternativeRoutesSubtitle: {
+    fontSize: 14,
+    color: "#0369A1",
+    lineHeight: 20,
+  },
+  alternativeRoutesButton: {
+    backgroundColor: "#0284C7",
+    borderRadius: 8,
+    paddingVertical: 12,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  alternativeRoutesButtonText: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#FFFFFF",
+  },
+  noResultsContainer: {
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 80,
+  },
+  noResultsTitle: {
+    fontSize: 18,
+    fontWeight: "600",
+    color: "#111827",
+    marginBottom: 8,
+  },
+  noResultsSubtitle: {
+    fontSize: 14,
+    color: "#6B7280",
+    textAlign: "center",
+    marginBottom: 20,
+  },
+  findMultiLegButton: {
+    backgroundColor: "#1A73E8",
+    borderRadius: 8,
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  findMultiLegButtonText: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#FFFFFF",
   },
 });

@@ -181,7 +181,9 @@ export default function HomeScreen() {
                 key={action.id}
                 style={styles.quickActionItem}
                 onPress={() => {
-                  if (action.title === "My Tickets") {
+                  if (action.title === "Book Now") {
+                    router.push("/(booking)/bus-selection");
+                  } else if (action.title === "My Tickets") {
                     router.push("/(tabs)/bookings");
                   } else if (action.title === "Request Song") {
                     router.push("/(tabs)/choose-bus");

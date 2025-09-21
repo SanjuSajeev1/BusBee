@@ -51,7 +51,9 @@ function AppContent() {
 export default function RootLayout() {
   return (
     <AuthProvider>
-      <AppContent />
+      <BookingProvider>
+        <AppContent />
+      </BookingProvider>
     </AuthProvider>
   );
 }

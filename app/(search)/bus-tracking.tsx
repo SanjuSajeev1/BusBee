@@ -445,6 +445,10 @@ const styles = StyleSheet.create({
     height: 24,
     marginTop: 2,
   },
+  stopIcon: {
+    fontSize: 12,
+    textAlign: "center",
+  },
   stopDetails: {
     flex: 1,
     flexDirection: "row",

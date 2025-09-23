@@ -19,7 +19,7 @@ export default function SearchLayout() {
         }}
       />
       <Stack.Screen
-        name="multi-leg-routes"
+        name="user-location"
         options={{
           headerShown: false,
           presentation: "modal",

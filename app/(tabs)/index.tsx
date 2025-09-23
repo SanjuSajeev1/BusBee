@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -12,23 +12,48 @@ import {
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { StatusBar } from "expo-status-bar";
-import { router } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
 import LocationPickerModal from "../../src/components/modals/LocationPickerModal";
 
 const { width } = Dimensions.get("window");
 
 export default function HomeScreen() {
+  const { selectedLocation } = useLocalSearchParams<{ selectedLocation?: string }>();
   const [fromLocation, setFromLocation] = useState("");
   const [toLocation, setToLocation] = useState("");
   const [showFromPicker, setShowFromPicker] = useState(false);
   const [showToPicker, setShowToPicker] = useState(false);
+
+  const handleFromLocationSelect = (location: any) => {
+    if (location?.coordinates?.lat && location?.coordinates?.lng) {
+      const { lat, lng } = location.coordinates;
+      const coordString = `${Number(lat).toFixed(6)}, ${Number(lng).toFixed(6)}`;
+      setFromLocation(coordString);
+      return;
+    }
+    setFromLocation(location.name);
+  };
+
+  // Handle location selection from user-location screen
+  useEffect(() => {
+    if (selectedLocation) {
+      try {
+        const location = JSON.parse(selectedLocation);
+        handleFromLocationSelect(location);
+        // Clear the parameter to avoid re-processing
+        router.replace("/(tabs)");
+      } catch (error) {
+        console.error("Error parsing selected location:", error);
+      }
+    }
+  }, [selectedLocation]);
 
   const quickActions = [
     { id: 1, title: "Book Now", icon: "🚌", color: ["#1A73E8", "#4285F4"] },
     { id: 2, title: "Track Bus", icon: "📍", color: ["#34A853", "#0F9D58"] },
     { id: 3, title: "My Tickets", icon: "🎫", color: ["#FBBC04", "#F9AB00"] },
     { id: 4, title: "Request Song", icon: "🎵", color: ["#9C27B0", "#E91E63"] },
-  ];
+  ] as const;
 
   const recentRoutes = [
     {
@@ -53,10 +78,6 @@ export default function HomeScreen() {
       price: "₹14",
     },
   ];
-
-  const handleFromLocationSelect = (location: any) => {
-    setFromLocation(location.name);
-  };
 
   const handleToLocationSelect = (location: any) => {
     setToLocation(location.name);
@@ -181,12 +202,12 @@ export default function HomeScreen() {
                 key={action.id}
                 style={styles.quickActionItem}
                 onPress={() => {
-                  if (action.title === "Book Now") {
-                    router.push("/(booking)/bus-selection");
-                  } else if (action.title === "My Tickets") {
+                  if (action.title === "My Tickets") {
                     router.push("/(tabs)/bookings");
                   } else if (action.title === "Request Song") {
                     router.push("/(tabs)/choose-bus");
+                  } else if (action.title === "Track Bus") {
+                    router.push("/(search)/user-location");
                   }
                 }}
               >
@@ -365,15 +386,6 @@ const styles = StyleSheet.create({
     fontSize: 18,
     color: "#FFFFFF",
     fontWeight: "bold",
-  },
-  searchInput: {
-    backgroundColor: "#F5F5F5",
-    borderRadius: 12,
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-    borderWidth: 1,
-    borderColor: "#E5E5EA",
-    justifyContent: "center",
   },
   searchInputText: {
     fontSize: 16,

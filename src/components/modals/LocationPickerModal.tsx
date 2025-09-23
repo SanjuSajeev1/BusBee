@@ -10,6 +10,7 @@ import {
   Dimensions,
   Platform,
 } from "react-native";
+import { router } from "expo-router";
 
 const { width, height } = Dimensions.get("window");
 
@@ -28,90 +29,34 @@ interface LocationPickerModalProps {
 }
 
 const dummyLocations: Location[] = [
-  // Kerala Locations for Multi-leg Testing
   {
     id: "1",
-    name: "Edavanakkad",
-    subtitle: "Kerala, India",
-    icon: "🏝️",
-  },
-  {
-    id: "2",
-    name: "Ernakulam",
-    subtitle: "Kochi, Kerala",
-    icon: "🏙️",
-  },
-  {
-    id: "3",
-    name: "Vytilla",
-    subtitle: "Kochi, Kerala",
-    icon: "🚌",
-  },
-  {
-    id: "4",
-    name: "TVM",
-    subtitle: "Thiruvananthapuram, Kerala",
-    icon: "🏛️",
-  },
-  {
-    id: "5",
-    name: "Trivandrum",
-    subtitle: "Thiruvananthapuram, Kerala",
-    icon: "🏛️",
-  },
-  {
-    id: "6",
-    name: "Thiruvananthapuram",
-    subtitle: "Kerala Capital",
-    icon: "🏛️",
-  },
-  {
-    id: "7",
-    name: "Kochi",
-    subtitle: "Commercial Capital, Kerala",
-    icon: "🏙️",
-  },
-  {
-    id: "8",
-    name: "Calicut",
-    subtitle: "Kozhikode, Kerala",
-    icon: "🏖️",
-  },
-  {
-    id: "9",
-    name: "Kozhikode",
-    subtitle: "Kerala, India",
-    icon: "🏖️",
-  },
-  // Original Locations
-  {
-    id: "10",
     name: "Downtown Terminal",
     subtitle: "Main bus station",
     icon: "🏢",
   },
-  { id: "11", name: "Airport", subtitle: "International Airport", icon: "✈️" },
+  { id: "2", name: "Airport", subtitle: "International Airport", icon: "✈️" },
   {
-    id: "12",
+    id: "3",
     name: "University Campus",
     subtitle: "State University",
     icon: "🎓",
   },
-  { id: "13", name: "Shopping Mall", subtitle: "City Center Mall", icon: "🛍️" },
+  { id: "4", name: "Shopping Mall", subtitle: "City Center Mall", icon: "🛍️" },
   {
-    id: "14",
+    id: "5",
     name: "Business District",
     subtitle: "Financial Center",
     icon: "🏦",
   },
-  { id: "15", name: "Train Station", subtitle: "Central Railway", icon: "🚂" },
-  { id: "16", name: "Hospital", subtitle: "General Hospital", icon: "🏥" },
-  { id: "17", name: "Beach Resort", subtitle: "Coastal Area", icon: "🏖️" },
-  { id: "18", name: "Tech Park", subtitle: "IT Hub", icon: "💻" },
-  { id: "19", name: "Sports Complex", subtitle: "Stadium Area", icon: "⚽" },
-  { id: "20", name: "Residential Area", subtitle: "Green Valley", icon: "🏘️" },
+  { id: "6", name: "Train Station", subtitle: "Central Railway", icon: "🚂" },
+  { id: "7", name: "Hospital", subtitle: "General Hospital", icon: "🏥" },
+  { id: "8", name: "Beach Resort", subtitle: "Coastal Area", icon: "🏖️" },
+  { id: "9", name: "Tech Park", subtitle: "IT Hub", icon: "💻" },
+  { id: "10", name: "Sports Complex", subtitle: "Stadium Area", icon: "⚽" },
+  { id: "11", name: "Residential Area", subtitle: "Green Valley", icon: "🏘️" },
   {
-    id: "21",
+    id: "12",
     name: "Industrial Zone",
     subtitle: "Manufacturing Hub",
     icon: "🏭",
@@ -133,6 +78,16 @@ export default function LocationPickerModal({
   );
 
   const handleLocationSelect = (location: Location) => {
+    // If current location is selected, navigate to user-location screen
+    if (location.id === "current") {
+      onClose();
+      router.push({
+        pathname: "/(search)/user-location",
+        params: { returnTo: "location-picker" }
+      });
+      return;
+    }
+    
     onSelectLocation(location);
     setSearchQuery("");
     onClose();

@@ -1,15 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
-export interface Passenger {
-  seatNumber: string;
-  name: string;
-  age: number;
-  gender: "Male" | "Female" | "Other";
-  email?: string;
-  phone?: string;
-}
-
 export interface BookingData {
   id: string;
   route: string;
@@ -30,10 +21,6 @@ export interface BookingData {
   busNumber: string;
   platform: string;
   qrCode: string;
-  selectedSeats?: string[];
-  passengerDetails?: Passenger[];
-  busType?: string;
-  amenities?: string[];
 }
 
 interface BookingContextType {
